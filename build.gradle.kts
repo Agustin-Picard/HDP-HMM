@@ -12,6 +12,10 @@ repositories {
     mavenCentral()
     maven { url = uri("http://dl.bintray.com/tomasvolker/maven") }
     maven { url = uri("https://jitpack.io") }
+    maven {
+        url = uri("http://dl.bintray.com/kyonifer/maven")
+        jcenter()
+    } // koma for extra math functions
 }
 
 dependencies {
@@ -21,6 +25,8 @@ dependencies {
     implementation(group = "tomasvolker", name = "numeriko-core", version = "0.0.3")
     implementation(group = "tomasvolker", name = "kyplot", version = "0.0.1")
     implementation(group = "com.github.tomasvolker", name = "parallel-utils", version = "v1.0")
+
+    compile(group = "com.kyonifer", name = "koma-core-ejml", version = "0.12")
 }
 
 configure<JavaPluginConvention> {

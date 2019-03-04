@@ -1,6 +1,5 @@
 package hdphmm
 
-import percha.strasbourg.singularValueDecomposition
 import tomasvolker.kyplot.dsl.*
 import tomasvolker.kyscript.KyScriptConfig
 import tomasvolker.numeriko.core.dsl.D
@@ -16,6 +15,7 @@ import tomasvolker.numeriko.core.operations.stack
 import tomasvolker.numeriko.core.operations.unstack
 import tomasvolker.numeriko.core.primitives.squared
 import tomasvolker.numeriko.core.primitives.sumDouble
+import utils.singularValueDecomposition
 import kotlin.math.PI
 import kotlin.math.exp
 import kotlin.math.pow
