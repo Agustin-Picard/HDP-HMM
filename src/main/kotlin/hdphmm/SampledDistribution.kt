@@ -14,7 +14,7 @@ data class SampledDistribution<P,T>(val distribution: T, val start: P, val stop:
 inline val <reified P> SampledDistribution<P,*>.sampleCount get() =
     if (distribution is DoubleArray2D) distribution.shape1
     else if (distribution is DoubleArray1D) distribution.size
-    else ignore()
+    else throw IllegalArgumentException("Invalid distribution format")
 
 fun DoubleDistribution<*>.estimateKLDivergence(other: SampledDistribution1D): Double =
         pdf(nSamples = other.sampleCount,
