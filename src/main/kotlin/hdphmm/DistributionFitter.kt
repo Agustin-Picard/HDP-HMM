@@ -168,3 +168,24 @@ class ParetoDistributionFitter {
                 samples.size / sumDouble(0 until samples.size) { i -> ln(samples[i] / scale) }
     }
 }
+
+data class LogNormalDistributionParameters(val mean: Double, val std: Double)
+
+class LogNormalDistributionFitter {
+    companion object: DistributionFitter<Double, LogNormalDistributionParameters> {
+        override fun fitParameters(samples: Iterable<Double>) =
+            samples.toDoubleArray1D().let {
+                LogNormalDistributionParameters(
+                    mean = estimateMean(it),
+                    std = estimateStd(it)
+                )
+            }
+
+        private fun estimateMean(samples: DoubleArray1D) = samples.map { ln(it) }.sum() / samples.size
+
+        private fun estimateStd(samples: DoubleArray1D) =
+                estimateMean(samples).let { mean ->
+                    samples.map { (ln(it) - mean).squared() }.sum() / samples.size
+                }
+    }
+}
