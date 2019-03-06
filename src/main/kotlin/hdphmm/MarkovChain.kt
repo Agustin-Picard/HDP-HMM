@@ -1,14 +1,15 @@
 package hdphmm
 
+import distribution.Distribution
 import tomasvolker.numeriko.core.functions.cumulativeSum
 import tomasvolker.numeriko.core.interfaces.array1d.double.DoubleArray1D
 import kotlin.random.Random
 
-data class MarkovChainState<P,out E>(val emissionDistribution: Distribution<P,E>) {
+data class MarkovChainState<P,out E>(val emissionDistribution: Distribution<P, E>) {
 
     lateinit var observations: MutableList<Int>
 
-    constructor(emissionDistribution: Distribution<P,E>,
+    constructor(emissionDistribution: Distribution<P, E>,
                 observation: Int): this(emissionDistribution) {
         if (!::observations.isInitialized)
             observations = mutableListOf(observation)

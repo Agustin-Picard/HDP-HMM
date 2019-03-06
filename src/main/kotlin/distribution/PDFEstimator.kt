@@ -1,5 +1,6 @@
-package hdphmm
+package distribution
 
+import hdphmm.mean
 import tomasvolker.kyplot.dsl.*
 import tomasvolker.kyscript.KyScriptConfig
 import tomasvolker.numeriko.core.dsl.D

@@ -1,4 +1,4 @@
-package hdphmm
+package distribution
 
 import tomasvolker.numeriko.core.interfaces.array1d.double.DoubleArray1D
 import tomasvolker.numeriko.core.interfaces.arraynd.double.DoubleArrayND
@@ -13,12 +13,12 @@ interface Distribution<P,out E> {
     val parameters: P
     fun nextSample(random: Random = Random.Default): E
     fun probability(observation: Double): Double
-    fun fromPrior(distribution: Distribution<*,P>, random: Random = Random.Default): Distribution<P,E>
+    fun fromPrior(distribution: Distribution<*, P>, random: Random = Random.Default): Distribution<P, E>
     fun pdf(nSamples: Int, start: Double, stop: Double): DoubleArrayND
     fun quantile(probability: Double): Double
 }
 
-interface DoubleDistribution<P>: Distribution<P,Double>{
+interface DoubleDistribution<P>: Distribution<P, Double> {
     override fun nextSample(random: Random): Double = nextDouble(random)
     fun nextDouble(random: Random = Random.Default): Double
     override fun pdf(nSamples: Int, start: Double, stop: Double): DoubleArray1D
@@ -56,9 +56,10 @@ class GaussianDistribution(val mean: Double, val std: Double): DoubleDistributio
             exp(- (observation - mean).squared() / (2 * variance)) / (sqrt(2 * PI) * std)
 
     override fun fromPrior(distribution: Distribution<*, Double>, random: Random): Distribution<Double, Double> =
-            GaussianDistribution(
-                    mean = distribution.nextSample(random) + mean,
-                    std = std)
+        distribution.GaussianDistribution(
+            mean = distribution.nextSample(random) + mean,
+            std = std
+        )
 
     override fun pdf(nSamples: Int, start: Double, stop: Double): DoubleArray1D =
         doubleArray1D(nSamples) {

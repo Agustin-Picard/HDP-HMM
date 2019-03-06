@@ -1,5 +1,7 @@
 package hdphmm
 
+import distribution.Distribution
+import distribution.GaussianDistribution
 import tomasvolker.kyplot.dsl.showLine
 import tomasvolker.kyscript.KyScriptConfig
 import tomasvolker.numeriko.core.dsl.D
@@ -37,9 +39,9 @@ fun DoubleArray1D.mean(): Double =
 fun ignore(): Nothing = error("illegal path")
 
 open class HMMSampler<P,E>(val observations: DoubleArray1D,
-                                      private val observationDistribution: Distribution<P,E>,
-                                      private val priorDistribution: Distribution<*,P>,
-                                      val alpha: Double
+                           private val observationDistribution: Distribution<P, E>,
+                           private val priorDistribution: Distribution<*, P>,
+                           val alpha: Double
 ): Sampler<P> {
 
     val duration: Int = observations.size
@@ -93,7 +95,7 @@ open class HMMSampler<P,E>(val observations: DoubleArray1D,
     override fun trainStep() =
             initTrain(nRepetitions = 4, nIterations = 100)
 
-    private fun acceptanceProbability(currDist: Distribution<P,E>, newDist: Distribution<P,E>, observation: Double) =
+    private fun acceptanceProbability(currDist: Distribution<P, E>, newDist: Distribution<P, E>, observation: Double) =
             newDist.probability(observation) / (currDist.probability(observation) + 1e-12)
 
     fun clearChain() {
@@ -106,10 +108,10 @@ open class HMMSampler<P,E>(val observations: DoubleArray1D,
 
 
 class NoGapsSampler<P,E>(
-        observations: DoubleArray1D,
-        observationDistribution: Distribution<P,E>,
-        priorDistribution: Distribution<*,P>,
-        alpha: Double
+    observations: DoubleArray1D,
+    observationDistribution: Distribution<P, E>,
+    priorDistribution: Distribution<*, P>,
+    alpha: Double
 ): HMMSampler<P,E>(
         observations,
         observationDistribution,
@@ -146,11 +148,11 @@ class NoGapsSampler<P,E>(
 
 
 class AuxGibbsSampler<P,E>(
-        observations: DoubleArray1D,
-        observationDistribution: Distribution<P,E>,
-        priorDistribution: Distribution<*,P>,
-        alpha: Double,
-        private val nAuxiliarStates: Int
+    observations: DoubleArray1D,
+    observationDistribution: Distribution<P, E>,
+    priorDistribution: Distribution<*, P>,
+    alpha: Double,
+    private val nAuxiliarStates: Int
 ): HMMSampler<P,E>(
         observations,
         observationDistribution,
@@ -206,10 +208,10 @@ class AuxGibbsSampler<P,E>(
 
 
 class PartialGibbsHMSampler<P,E>(
-        observations: DoubleArray1D,
-        observationDistribution: Distribution<P,E>,
-        priorDistribution: Distribution<*,P>,
-        alpha: Double
+    observations: DoubleArray1D,
+    observationDistribution: Distribution<P, E>,
+    priorDistribution: Distribution<*, P>,
+    alpha: Double
 ): HMMSampler<P,E>(
         observations,
         observationDistribution,
