@@ -16,6 +16,7 @@ repositories {
         url = uri("http://dl.bintray.com/kyonifer/maven")
         jcenter()
     } // koma for extra math functions
+    maven { url = uri("https://mvnrepository.com/artifact/org.apache.commons/commons-math3") }
 }
 
 dependencies {
@@ -27,6 +28,7 @@ dependencies {
     implementation(group = "com.github.tomasvolker", name = "parallel-utils", version = "v1.0")
 
     compile(group = "com.kyonifer", name = "koma-core-ejml", version = "0.12")
+    compile(group = "org.apache.commons", name = "commons-math3", version = "3.6.1")
 }
 
 configure<JavaPluginConvention> {

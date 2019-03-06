@@ -1,7 +1,7 @@
 package hdphmm
 
 import distribution.Distribution
-import distribution.GaussianDistribution
+import distribution.GaussianDistribution1D
 import tomasvolker.kyplot.dsl.showLine
 import tomasvolker.kyscript.KyScriptConfig
 import tomasvolker.numeriko.core.dsl.D
@@ -311,8 +311,8 @@ fun main() {
     KyScriptConfig.defaultPythonPath = "python"
 
     val observations = D[-1.48, -1.40, -1.16, -1.08, -1.02, 0.14, 0.51, 0.53, 0.78]
-    val observationDistribution = GaussianDistribution(mean = 0.0, std = 0.1)
-    val priorDistribution = GaussianDistribution(mean = 0.0, std = 1.0)
+    val observationDistribution = GaussianDistribution1D(mean = 0.0, std = 0.1)
+    val priorDistribution = GaussianDistribution1D(mean = 0.0, std = 1.0)
 
     val noGapsSampler = NoGapsSampler(
             observations = observations,

@@ -124,23 +124,18 @@ object ExponentialDistributionFitter: DistributionFitter<Double, ExponentialDist
 
 }
 
-data class GammaDistributionParameters(val theta: Double,
-                                       val k: Double,
-                                       val alpha: Double,
-                                       val beta: Double)
+data class GammaDistributionParameters(val scale: Double, val shape: Double)
 
 object GammaDistributionFitter: DistributionFitter<Double, GammaDistributionParameters> {
         override fun fitParameters(samples: Iterable<Double>): GammaDistributionParameters {
             val s = estimateS(samples.toDoubleArray1D())
-            val k = estimateK(s)
-            val theta = estimateTheta(samples.toDoubleArray1D(), k)
-            val beta = 1.0 / theta
+            val shape = estimateK(s)
+            val scale = estimateTheta(samples.toDoubleArray1D(), shape)
+            val beta = 1.0 / scale
 
             return GammaDistributionParameters(
-                theta = theta,
-                k = k,
-                alpha = k,
-                beta = beta
+                scale = scale,
+                shape = shape
             )
         }
 
