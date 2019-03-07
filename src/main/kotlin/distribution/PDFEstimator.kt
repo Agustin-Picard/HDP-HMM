@@ -30,7 +30,7 @@ interface DoubleDensityEstimator {
     fun estimatePdf(samples: Iterable<Number>,
                     start: Double,
                     stop: Double,
-                    pdfCount: Int): DoubleArray1D
+                    pdfCount: Int): SampledDistribution1D
 }
 
 interface DensityEstimator {
@@ -69,15 +69,19 @@ class DoubleKernelDensityEstimator(val kernel: DoubleKernel): DoubleDensityEstim
     override fun estimatePdf(samples: Iterable<Number>,
                     start: Double,
                     stop: Double,
-                    pdfCount: Int): DoubleArray1D {
+                    pdfCount: Int): SampledDistribution1D {
         val sampleArray = samples.toDoubleArray1D()
         val bandwidth = silvermanBandwidth(sampleArray)
 
-        return doubleArray1D(pdfCount) { t ->
-            sumDouble(0 until sampleArray.size) { i ->
-                kernel(((start + t * (stop - start) / pdfCount) - sampleArray[i]) / bandwidth)
-            }
-        } / (bandwidth * sampleArray.size)
+        return SampledDistribution1D(
+            distribution = doubleArray1D(pdfCount) { t ->
+                sumDouble(0 until sampleArray.size) { i ->
+                    kernel(((start + t * (stop - start) / pdfCount) - sampleArray[i]) / bandwidth)
+                }
+            } / (bandwidth * sampleArray.size),
+            start = start,
+            stop = stop
+        )
     }
 
     private fun silvermanBandwidth(samples: DoubleArray1D) =

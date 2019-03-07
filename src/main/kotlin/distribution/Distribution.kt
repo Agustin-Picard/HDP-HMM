@@ -69,6 +69,11 @@ class GaussianDistribution1D(val mean: Double, val std: Double): DoubleDistribut
 
     override fun quantile(probability: Double): Double =
             mean + std * sqrt(2.0) * erfinvFunction(2.0 * probability - 1.0)
+
+    companion object {
+        fun fromParameters(param: GaussianDistribution1DParameters) =
+                GaussianDistribution1D(param.mean, param.std)
+    }
 }
 
 class ExponentialDistribution(val rate: Double): DoubleDistribution<Double> {
@@ -93,6 +98,11 @@ class ExponentialDistribution(val rate: Double): DoubleDistribution<Double> {
 
     override fun quantile(probability: Double): Double =
             -ln(1.0 - probability) / rate
+
+    companion object {
+        fun fromParameters(param: ExponentialDistributionParameters) =
+                ExponentialDistribution(param.decayRate)
+    }
 }
 
 class LogNormalDistribution(val mean: Double, val std: Double): DoubleDistribution<LogNormalDistributionParameters> {
@@ -125,6 +135,11 @@ class LogNormalDistribution(val mean: Double, val std: Double): DoubleDistributi
 
     override fun quantile(probability: Double): Double =
             exp(mean + std * sqrt(2.0) * erfinvFunction(2.0 * probability - 1.0))
+
+    companion object {
+        fun fromParameters(param: LogNormalDistributionParameters) =
+                LogNormalDistribution(param.mean, param.std)
+    }
 }
 
 class GammaDistribution(val shape: Double, val scale: Double): DoubleDistribution<GammaDistributionParameters> {
@@ -183,5 +198,10 @@ class GammaDistribution(val shape: Double, val scale: Double): DoubleDistributio
 
     override fun quantile(probability: Double): Double {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    companion object {
+        fun fromParameters(param: GammaDistributionParameters) =
+                GammaDistribution(param.shape, param.scale)
     }
 }
