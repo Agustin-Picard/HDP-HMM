@@ -6,6 +6,7 @@ import tomasvolker.numeriko.core.interfaces.factory.doubleArray1D
 import tomasvolker.numeriko.core.interfaces.factory.nextGaussian
 import tomasvolker.numeriko.core.primitives.squared
 import tomasvolker.numeriko.core.primitives.sumDouble
+import utils.erfinvFunction
 import utils.gammaFunction
 import kotlin.math.*
 import kotlin.random.Random
@@ -21,6 +22,8 @@ interface Distribution<P,out E> {
 
 interface DoubleDistribution<P>: Distribution<P, Double> {
     override fun nextSample(random: Random): Double = nextDouble(random)
+    fun nextSample(nSamples: Int, random: Random = Random.Default) =
+            doubleArray1D(nSamples) { nextDouble(random) }
     fun nextDouble(random: Random = Random.Default): Double
     override fun pdf(nSamples: Int, start: Double, stop: Double): DoubleArray1D
 }
@@ -50,9 +53,6 @@ class GaussianDistribution1D(val mean: Double, val std: Double): DoubleDistribut
     override fun nextDouble(random: Random): Double =
         mean + std * random.nextGaussian()
 
-    fun nextSample(nSamples: Int, random: Random = Random.Default): DoubleArray1D =
-            doubleArray1D(nSamples) { nextDouble(random) }
-
     override fun probability(observation: Double): Double =
             exp(- (observation - mean).squared() / (2 * variance)) / (sqrt(2 * PI) * std)
 
@@ -68,7 +68,7 @@ class GaussianDistribution1D(val mean: Double, val std: Double): DoubleDistribut
         }
 
     override fun quantile(probability: Double): Double =
-            TODO("calculate the erfinv...")
+            mean + std * sqrt(2.0) * erfinvFunction(2.0 * probability - 1.0)
 }
 
 class ExponentialDistribution(val rate: Double): DoubleDistribution<Double> {
@@ -123,9 +123,8 @@ class LogNormalDistribution(val mean: Double, val std: Double): DoubleDistributi
             (1 / (observation * std * sqrt(2 * PI))) *
                     exp(-(ln(observation) - mean).squared() / (2.0 * std).squared())
 
-    override fun quantile(probability: Double): Double {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun quantile(probability: Double): Double =
+            exp(mean + std * sqrt(2.0) * erfinvFunction(2.0 * probability - 1.0))
 }
 
 class GammaDistribution(val shape: Double, val scale: Double): DoubleDistribution<GammaDistributionParameters> {

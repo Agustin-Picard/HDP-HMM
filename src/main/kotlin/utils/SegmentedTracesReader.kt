@@ -7,10 +7,10 @@ data class Trace(val label: Int, val timestamps: List<Double>, val data: List<Do
 
 class SegmentedTracesReader(val filename: String) {
 
-    fun readTraces(): List<Trace> {
+    fun readSegmented(): List<Trace> {
         val traceList = mutableListOf<Trace>()
         val joinedData = mutableListOf<Pair<List<Double>,Int>>()
-        val classList = readClasses().toList()
+        val classList = readClasses()
         val classCount = classList.distinct().size
 
         readData().forEachIndexed { index, data ->
@@ -25,12 +25,16 @@ class SegmentedTracesReader(val filename: String) {
         return traceList
     }
 
+    fun readTraces(): List<Double> =
+        readData().map { it[1] }
+
     private fun readData() =
             File(filename).useLines {
                 it.map {
                     it.trim()
-                    it.split(',').map { it.toDouble() }
-                }
+                        .split(",")
+                        .map { if (it == "missing") 0.0 else it.toDouble() }
+                }.toList()
             }
 
     private fun readClasses() =
@@ -39,6 +43,6 @@ class SegmentedTracesReader(val filename: String) {
                     it.map {
                         it.trim()
                             .toInt()
-                    }
+                    }.toList()
                 }
 }
