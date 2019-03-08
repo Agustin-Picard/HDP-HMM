@@ -209,5 +209,32 @@ class GammaDistribution(val shape: Double, val scale: Double): DoubleDistributio
     companion object {
         fun fromParameters(param: GammaDistributionParameters) =
                 GammaDistribution(param.shape, param.scale)
+
+        fun nextDouble(shape: Double, scale: Double, random: Random = Random.Default): Double {
+            val rest = shape % 1.0
+            val delta = shape - rest
+            val randomArray = doubleArray1D(rest.toInt()) { random.nextDouble() }
+            var eta = 10.0
+            var xi = 0.0
+
+            while (eta > xi.pow(delta - 1.0) * exp(-xi)) {
+                val u = random.nextDouble()
+                val v = random.nextDouble()
+                val w = random.nextDouble()
+
+                if (u <= E / (E + delta)) {
+                    xi = v.pow(1 / delta)
+                    eta = w * xi.pow(delta - 1.0)
+                } else {
+                    xi = 1 - ln(v)
+                    eta = w * exp(-xi)
+                }
+            }
+
+            return scale * (xi - randomArray.sumByDouble { ln(it) })
+        }
+
+        fun probability(shape: Double, scale: Double, x: Double) =
+            (1.0 / (gammaFunction(shape) * scale.pow(shape))) * x.pow(shape - 1) * exp(-x / scale)
     }
 }

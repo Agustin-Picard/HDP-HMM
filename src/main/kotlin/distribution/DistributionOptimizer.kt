@@ -28,25 +28,25 @@ object DistributionOptimizer {
 
         // fit the parameters of the distributions we want to test
         val gaussianParameters = GaussianDistributionFitter1D.fitParameters(data)
-//        val logNormalParameters = LogNormalDistributionFitter.fitParameters(data)
+        val logNormalParameters = LogNormalDistributionFitter.fitParameters(data)
         val exponentialParameters = ExponentialDistributionFitter.fitParameters(data)
         val gammaParameters = GammaDistributionFitter.fitParameters(data)
 
         // generate the corresponding distributions
         val normalDistribution = GaussianDistribution1D.fromParameters(gaussianParameters)
-//        val logNormalDistribution = LogNormalDistribution.fromParameters(logNormalParameters)
+        val logNormalDistribution = LogNormalDistribution.fromParameters(logNormalParameters)
         val exponentialDistribution = ExponentialDistribution.fromParameters(exponentialParameters)
         val gammaDistribution = GammaDistribution.fromParameters(gammaParameters)
 
         // compute the kullback-leibler convergence
         val normalKLD = normalDistribution.estimateKLDivergence(empiricDensity)
-//        val logNormalKLD = logNormalDistribution.estimateKLDivergence(empiricDensity)
+        val logNormalKLD = logNormalDistribution.estimateKLDivergence(empiricDensity)
         val exponentialKLD = exponentialDistribution.estimateKLDivergence(empiricDensity)
         val gammaKLD = gammaDistribution.estimateKLDivergence(empiricDensity)
 
         return listOf<Pair<Double,DoubleDistribution<*>>>(
             normalKLD to normalDistribution,
-//            logNormalKLD to logNormalDistribution,
+            logNormalKLD to logNormalDistribution,
             exponentialKLD to exponentialDistribution,
             gammaKLD to gammaDistribution
         ).maxBy { it.first }?.second ?: error("Error in distributions")

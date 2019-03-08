@@ -10,7 +10,9 @@ import utils.digammaFunction
 import utils.trigammaFunction
 import kotlin.math.absoluteValue
 import kotlin.math.ln
+import kotlin.math.min
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 fun DoubleArray1D.std(): Double =
         mean().let { mean ->
@@ -133,9 +135,18 @@ data class GammaDistributionParameters(val scale: Double, val shape: Double)
 object GammaDistributionFitter: DistributionFitter<Double, GammaDistributionParameters> {
 
     override fun fitParameters(samples: Iterable<Double>): GammaDistributionParameters {
+        val samplesMean = samples.average()
+        val samplesStd = samples.toDoubleArray1D().std()
+        val shape = (samplesMean / samplesStd).squared()
+        val scale = samplesStd.squared() / samplesMean
+
+        return GammaDistributionParameters(scale = scale, shape = shape)
+    }
+
+    fun fitParametersMLE(samples: Iterable<Double>): GammaDistributionParameters {
         val meanLog = samples.map { ln(it) }.average()
         val logMean = ln(samples.average())
-        var shape = 1.0 // just trying stuff
+        var shape = 1.0
         var currShape = 0.0
 
         while ((shape - currShape).absoluteValue > 1e-2) {
@@ -146,27 +157,17 @@ object GammaDistributionFitter: DistributionFitter<Double, GammaDistributionPara
 
         return GammaDistributionParameters(scale = samples.average() / shape, shape = shape)
     }
-    /*override fun fitParameters(samples: Iterable<Double>): GammaDistributionParameters {
-            val s = estimateS(samples.toDoubleArray1D())
-            val shape = estimateShape(s)
-            val scale = estimateScale(samples.toDoubleArray1D(), shape)
 
-            return GammaDistributionParameters(
-                scale = scale,
-                shape = shape
-            )
-        }
+    fun fitParametersMoments(samples: Iterable<Double>): GammaDistributionParameters {
+        val samplesMean = samples.average()
+        val samplesStd = samples.toDoubleArray1D().std()
+        val shape = (samplesMean / samplesStd).squared()
+        val scale = samplesStd.squared() / samplesMean
 
-        private fun estimateS(samples: DoubleArray1D) =
-                ln(samples.mean()) - samples.elementWise { ln(it) }.mean()
-
-        private fun estimateShape(s: Double) =
-                (3.0 - s + sqrt((s - 3.0).squared() + 24 * s)) / (12 * s)
-
-        private fun estimateScale(samples: DoubleArray1D, shape: Double) =
-                samples.mean() / shape*/
-
+        return GammaDistributionParameters(scale = scale, shape = shape)
     }
+
+}
 
 data class ParetoDistributionParameters(val scale: Double, val alpha: Double)
 
