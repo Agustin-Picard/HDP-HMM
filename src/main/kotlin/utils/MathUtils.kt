@@ -17,6 +17,12 @@ fun gammaFunction(x: Double): Double =
 fun logGammaFunction(x: Double) =
         Gamma.logGamma(x)
 
+fun digammaFunction(x: Double) =
+        Gamma.digamma(x)
+
+fun trigammaFunction(x: Double) =
+        Gamma.trigamma(x)
+
 fun erfinvFunction(x: Double) =
         Erf.erfInv(x)
 

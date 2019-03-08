@@ -11,7 +11,7 @@ typealias SampledDistribution2D = SampledDistribution<DoubleArray1D, DoubleArray
 
 data class SampledDistribution<P,T>(val distribution: T, val start: P, val stop: P)
 
-inline val <reified P> SampledDistribution<P, *>.sampleCount get() =
+inline val <reified P> SampledDistribution<P,*>.sampleCount get() =
     if (distribution is DoubleArray2D) distribution.shape1
     else if (distribution is DoubleArray1D) distribution.size
     else throw IllegalArgumentException("Invalid distribution format")

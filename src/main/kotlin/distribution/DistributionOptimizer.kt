@@ -1,9 +1,11 @@
 package distribution
 
+import hdphmm.mean
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Vector2
 import tomasvolker.kyscript.KyScriptConfig
 import tomasvolker.numeriko.core.interfaces.array1d.double.DoubleArray1D
+import tomasvolker.numeriko.core.interfaces.array1d.double.elementWise
 import tomasvolker.numeriko.core.interfaces.factory.toDoubleArray1D
 import tomasvolker.openrndr.math.plot.plotLine
 import tomasvolker.openrndr.math.plot.quickPlot2D
@@ -26,25 +28,25 @@ object DistributionOptimizer {
 
         // fit the parameters of the distributions we want to test
         val gaussianParameters = GaussianDistributionFitter1D.fitParameters(data)
-        val logNormalParameters = LogNormalDistributionFitter.fitParameters(data)
+//        val logNormalParameters = LogNormalDistributionFitter.fitParameters(data)
         val exponentialParameters = ExponentialDistributionFitter.fitParameters(data)
         val gammaParameters = GammaDistributionFitter.fitParameters(data)
 
         // generate the corresponding distributions
         val normalDistribution = GaussianDistribution1D.fromParameters(gaussianParameters)
-        val logNormalDistribution = LogNormalDistribution.fromParameters(logNormalParameters)
+//        val logNormalDistribution = LogNormalDistribution.fromParameters(logNormalParameters)
         val exponentialDistribution = ExponentialDistribution.fromParameters(exponentialParameters)
         val gammaDistribution = GammaDistribution.fromParameters(gammaParameters)
 
         // compute the kullback-leibler convergence
         val normalKLD = normalDistribution.estimateKLDivergence(empiricDensity)
-        val logNormalKLD = logNormalDistribution.estimateKLDivergence(empiricDensity)
+//        val logNormalKLD = logNormalDistribution.estimateKLDivergence(empiricDensity)
         val exponentialKLD = exponentialDistribution.estimateKLDivergence(empiricDensity)
         val gammaKLD = gammaDistribution.estimateKLDivergence(empiricDensity)
 
         return listOf<Pair<Double,DoubleDistribution<*>>>(
             normalKLD to normalDistribution,
-            logNormalKLD to logNormalDistribution,
+//            logNormalKLD to logNormalDistribution,
             exponentialKLD to exponentialDistribution,
             gammaKLD to gammaDistribution
         ).maxBy { it.first }?.second ?: error("Error in distributions")
@@ -78,15 +80,15 @@ fun main() {
     val start = densityList[0].start.also { println(it) }
     val stop = densityList[0].stop.also { println(it) }
 
-    val plotDist = distributionList[0].pdf(1000, 1.0, 1000.0).also { println(it) }
+    val plotDist = distributionList[0].pdf(1000, start, stop).also { println(it) }
         .mapIndexed { index, d -> Vector2(index.d / 10.0, d * 100.0) }
-    val plotDensity = densityList[1].distribution.mapIndexed { index, d -> Vector2(index.d / 10.0, d * 100.0) }
+    val plotDensity = densityList[0].distribution.mapIndexed { index, d -> Vector2(index.d / 10.0, d * 100.0) }
 
     quickPlot2D {
         stroke = ColorRGBa.RED
         plotLine(plotDensity)
-//        stroke = ColorRGBa.BLUE
-//        plotLine(plotDist)
+        stroke = ColorRGBa.BLUE
+        plotLine(plotDist)
     }
 
     /*showFigure {

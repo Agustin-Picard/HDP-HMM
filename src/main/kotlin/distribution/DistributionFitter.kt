@@ -6,6 +6,9 @@ import tomasvolker.numeriko.core.interfaces.array1d.double.elementWise
 import tomasvolker.numeriko.core.interfaces.factory.toDoubleArray1D
 import tomasvolker.numeriko.core.primitives.squared
 import tomasvolker.numeriko.core.primitives.sumDouble
+import utils.digammaFunction
+import utils.trigammaFunction
+import kotlin.math.absoluteValue
 import kotlin.math.ln
 import kotlin.math.sqrt
 
@@ -128,7 +131,22 @@ object ExponentialDistributionFitter: DistributionFitter<Double, ExponentialDist
 data class GammaDistributionParameters(val scale: Double, val shape: Double)
 
 object GammaDistributionFitter: DistributionFitter<Double, GammaDistributionParameters> {
-        override fun fitParameters(samples: Iterable<Double>): GammaDistributionParameters {
+
+    override fun fitParameters(samples: Iterable<Double>): GammaDistributionParameters {
+        val meanLog = samples.map { ln(it) }.average()
+        val logMean = ln(samples.average())
+        var shape = 1.0 // just trying stuff
+        var currShape = 0.0
+
+        while ((shape - currShape).absoluteValue > 1e-2) {
+            currShape = shape
+            shape = 1.0 / ((1 / shape) + (meanLog - logMean + ln(shape) - digammaFunction(shape)) /
+                    (shape.squared() * ((1 / shape) - trigammaFunction(shape))))
+        }
+
+        return GammaDistributionParameters(scale = samples.average() / shape, shape = shape)
+    }
+    /*override fun fitParameters(samples: Iterable<Double>): GammaDistributionParameters {
             val s = estimateS(samples.toDoubleArray1D())
             val shape = estimateShape(s)
             val scale = estimateScale(samples.toDoubleArray1D(), shape)
@@ -146,7 +164,7 @@ object GammaDistributionFitter: DistributionFitter<Double, GammaDistributionPara
                 (3.0 - s + sqrt((s - 3.0).squared() + 24 * s)) / (12 * s)
 
         private fun estimateScale(samples: DoubleArray1D, shape: Double) =
-                samples.mean() / shape
+                samples.mean() / shape*/
 
     }
 
