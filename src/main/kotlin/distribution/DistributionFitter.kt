@@ -2,6 +2,7 @@ package distribution
 
 import hdphmm.mean
 import tomasvolker.numeriko.core.interfaces.array1d.double.DoubleArray1D
+import tomasvolker.numeriko.core.interfaces.array1d.double.elementWise
 import tomasvolker.numeriko.core.interfaces.factory.toDoubleArray1D
 import tomasvolker.numeriko.core.primitives.squared
 import tomasvolker.numeriko.core.primitives.sumDouble
@@ -129,9 +130,8 @@ data class GammaDistributionParameters(val scale: Double, val shape: Double)
 object GammaDistributionFitter: DistributionFitter<Double, GammaDistributionParameters> {
         override fun fitParameters(samples: Iterable<Double>): GammaDistributionParameters {
             val s = estimateS(samples.toDoubleArray1D())
-            val shape = estimateK(s)
-            val scale = estimateTheta(samples.toDoubleArray1D(), shape)
-            val beta = 1.0 / scale
+            val shape = estimateShape(s)
+            val scale = estimateScale(samples.toDoubleArray1D(), shape)
 
             return GammaDistributionParameters(
                 scale = scale,
@@ -140,13 +140,13 @@ object GammaDistributionFitter: DistributionFitter<Double, GammaDistributionPara
         }
 
         private fun estimateS(samples: DoubleArray1D) =
-                ln(samples.mean()) - sumDouble(0 until samples.size) { i -> ln(samples[i]) } / samples.size
+                ln(samples.mean()) - samples.elementWise { ln(it) }.mean()
 
-        private fun estimateK(s: Double) =
+        private fun estimateShape(s: Double) =
                 (3.0 - s + sqrt((s - 3.0).squared() + 24 * s)) / (12 * s)
 
-        private fun estimateTheta(samples: DoubleArray1D, k: Double) =
-                samples.mean() / k
+        private fun estimateScale(samples: DoubleArray1D, shape: Double) =
+                samples.mean() / shape
 
     }
 
@@ -177,14 +177,12 @@ object LogNormalDistributionFitter: DistributionFitter<Double, LogNormalDistribu
             samples.toDoubleArray1D().let {
                 LogNormalDistributionParameters(
                     mean = estimateMean(it),
-                    std = estimateStd(it)
+                    std = sqrt(estimateVariance(it))
                 )
             }
 
-        private fun estimateMean(samples: DoubleArray1D) = samples.map { ln(it) }.sum() / samples.size
+        private fun estimateMean(samples: DoubleArray1D) = samples.elementWise { ln(it) }.mean()
 
-        private fun estimateStd(samples: DoubleArray1D) =
-                estimateMean(samples).let { mean ->
-                    samples.map { (ln(it) - mean).squared() }.sum() / samples.size
-                }
+        private fun estimateVariance(samples: DoubleArray1D) =
+                    samples.elementWise { ln(it) }.std()
     }

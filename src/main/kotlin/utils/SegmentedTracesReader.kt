@@ -19,7 +19,8 @@ class SegmentedTracesReader(val filename: String) {
 
         for (i in 0 until classCount) {
             val filteredData = joinedData.filter { it.second == i }.map { it.first }
-            traceList.add(Trace(i, filteredData[0], filteredData[1]))
+            if (filteredData.isNotEmpty())
+                traceList.add(Trace(i, filteredData.map { it[0] }, filteredData.map { it[1] }))
         }
 
         return traceList

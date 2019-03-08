@@ -1,11 +1,14 @@
 package distribution
 
+import org.openrndr.math.Vector2
 import tomasvolker.numeriko.core.interfaces.array1d.double.DoubleArray1D
 import tomasvolker.numeriko.core.interfaces.arraynd.double.DoubleArrayND
 import tomasvolker.numeriko.core.interfaces.factory.doubleArray1D
 import tomasvolker.numeriko.core.interfaces.factory.nextGaussian
 import tomasvolker.numeriko.core.primitives.squared
 import tomasvolker.numeriko.core.primitives.sumDouble
+import tomasvolker.openrndr.math.plot.plotLine
+import tomasvolker.openrndr.math.plot.quickPlot2D
 import utils.erfinvFunction
 import utils.gammaFunction
 import kotlin.math.*
@@ -63,8 +66,9 @@ class GaussianDistribution1D(val mean: Double, val std: Double): DoubleDistribut
         )
 
     override fun pdf(nSamples: Int, start: Double, stop: Double): DoubleArray1D =
-        doubleArray1D(nSamples) {
-            exp(-((it * (stop - start) / nSamples) - mean).squared() / (2 * variance)) / (sqrt(2 * PI) * std)
+        doubleArray1D(nSamples) {t ->
+            val x = (stop - start)  / nSamples * t + start
+            probability(x)
         }
 
     override fun quantile(probability: Double): Double =
@@ -91,7 +95,10 @@ class ExponentialDistribution(val rate: Double): DoubleDistribution<Double> {
             )
 
     override fun pdf(nSamples: Int, start: Double, stop: Double): DoubleArray1D =
-            doubleArray1D(nSamples) { t -> rate * exp(-rate *((stop - start) * t) + start) }
+            doubleArray1D(nSamples) { t ->
+                val x = (stop - start) * t / nSamples + start
+                probability(x)
+            }
 
     override fun probability(observation: Double): Double =
             rate * exp(-rate * observation)
@@ -124,9 +131,8 @@ class LogNormalDistribution(val mean: Double, val std: Double): DoubleDistributi
 
     override fun pdf(nSamples: Int, start: Double, stop: Double): DoubleArray1D =
             doubleArray1D(nSamples) { t ->
-                val x = (stop - start) * t + start
-                (1 / (x * std * sqrt(2 * PI))) *
-                        exp(-(ln(x) - mean).squared() / (2.0 * std).squared())
+                val x = (stop - start) * t / nSamples + start
+                probability(x)
             }
 
     override fun probability(observation: Double): Double =
@@ -188,7 +194,7 @@ class GammaDistribution(val shape: Double, val scale: Double): DoubleDistributio
         val k = (1.0 / (gammaFunction(shape) * scale.pow(shape)))
 
         return doubleArray1D(nSamples) { t ->
-            val x = (stop - start) * t + start
+            val x = (stop - start) * t / nSamples + start
             k * x.pow(shape - 1) * exp(-x / scale)
         }
     }
