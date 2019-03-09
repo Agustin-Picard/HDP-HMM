@@ -10,7 +10,9 @@ import tomasvolker.numeriko.core.interfaces.array1d.double.DoubleArray1D
 import tomasvolker.numeriko.core.interfaces.factory.doubleArray1D
 import tomasvolker.numeriko.core.interfaces.factory.toDoubleArray1D
 import tomasvolker.numeriko.core.linearalgebra.linearSpace
-import tomasvolker.numeriko.core.primitives.sumDouble
+import utils.autocorrelation
+import utils.autocorrelationTime
+import kotlin.math.min
 import kotlin.random.Random
 import kotlin.system.measureTimeMillis
 
@@ -23,18 +25,6 @@ interface Sampler<P> {
 }
 
 operator fun <P,E> MarkovChain<P,out E>.get(i: Int) = getState(i)
-
-fun DoubleArray1D.autocorrelationTime(): Double =
-        1 + 2 * sumDouble(1 until size) { i -> autocorrelation(i) } / autocorrelation(0)
-
-fun DoubleArray1D.autocorrelation(delta: Int): Double = mean().let { mean ->
-    sumDouble(0 until size - delta) { t ->
-        (this[t] - mean) * (this[t + delta] - mean)
-    } / (size - delta)
-}
-
-fun DoubleArray1D.mean(): Double =
-        average()
 
 fun ignore(): Nothing = error("illegal path")
 
@@ -73,10 +63,10 @@ open class HMMSampler<P,E>(val observations: DoubleArray1D,
             val newState = markovChain.proposeState(markovChain.chainDistribution()) ?:
             markovChain.proposeStateFromPrior()
 
-            if (Random.nextDouble() < acceptanceProbability(
+            if (Random.nextDouble() < min(1.0, acceptanceProbability(
                             currDist = currState.emissionDistribution,
                             newDist = newState.emissionDistribution,
-                            observation = observations[obsPosition])) {
+                            observation = observations[obsPosition]))) {
                 markovChain.updateState(newState, obsPosition)
             } else
                 markovChain.updateState(currState, obsPosition)
@@ -240,7 +230,7 @@ class PartialGibbsHMSampler<P,E>(
             if (markovChain[i].isSingleton) {
                 val newState = markovChain.proposeState(markovChain.chainProb()) ?: markovChain.stateList.last()
 
-                if (acceptanceProbability(currState, newState, observations[i]) * alpha / (stateCount - 1.0) > Random.nextDouble())
+                if (min(1.0, acceptanceProbability(currState, newState, observations[i]) * alpha / (stateCount - 1.0)) > Random.nextDouble())
                     markovChain.updateState(newState, i)
             } else {
                 val newState = markovChain.proposeStateFromPrior()
@@ -314,12 +304,12 @@ fun main() {
     val observationDistribution = GaussianDistribution1D(mean = 0.0, std = 0.1)
     val priorDistribution = GaussianDistribution1D(mean = 0.0, std = 1.0)
 
-    val noGapsSampler = NoGapsSampler(
+    /*val noGapsSampler = NoGapsSampler(
             observations = observations,
             observationDistribution = observationDistribution,
             priorDistribution = priorDistribution,
             alpha = 1.0
-    )
+    )*/
 
     /*val auxGibbsSampler = AuxGibbsSampler(
             observations = observations,
@@ -329,12 +319,12 @@ fun main() {
             nAuxiliarStates = 8
     )*/
 
-    /*val partialGibbsHMSampler = PartialGibbsHMSampler(
+    val partialGibbsHMSampler = PartialGibbsHMSampler(
             observations = observations,
             observationDistribution = observationDistribution,
             priorDistribution = priorDistribution,
             alpha = 1.0
-    )*/
+    )
 
     /*val metropolisHastingsSampler = HMMSampler(observations = observations,
             observationDistribution = observationDistribution,
@@ -342,7 +332,7 @@ fun main() {
             alpha = 1.0
     )*/
 
-    val tester: HMMSamplerTester<Double> = HMMSamplerTester(noGapsSampler, 100).apply {
+    val tester: HMMSamplerTester<Double> = HMMSamplerTester(partialGibbsHMSampler, 100).apply {
         val parameter = testStateCount(20000).toDoubleArray1D()
         println("Autocorrelation time = ${parameter.autocorrelationTime()}")
         println(this)

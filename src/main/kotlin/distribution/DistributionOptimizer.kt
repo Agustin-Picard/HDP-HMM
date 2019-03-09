@@ -1,18 +1,15 @@
 package distribution
 
-import hdphmm.mean
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Vector2
 import tomasvolker.kyscript.KyScriptConfig
 import tomasvolker.numeriko.core.interfaces.array1d.double.DoubleArray1D
-import tomasvolker.numeriko.core.interfaces.array1d.double.elementWise
 import tomasvolker.numeriko.core.interfaces.factory.toDoubleArray1D
 import tomasvolker.openrndr.math.plot.plotLine
 import tomasvolker.openrndr.math.plot.quickPlot2D
 import tomasvolker.openrndr.math.primitives.d
 import utils.SegmentedTracesReader
 import utils.gaussianKernel1D
-import utils.unbiased
 
 object DistributionOptimizer {
 

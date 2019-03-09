@@ -1,6 +1,6 @@
 package distribution
 
-import hdphmm.mean
+import utils.mean
 import tomasvolker.numeriko.core.interfaces.array1d.double.DoubleArray1D
 import tomasvolker.numeriko.core.interfaces.array1d.double.elementWise
 import tomasvolker.numeriko.core.interfaces.factory.toDoubleArray1D
@@ -10,9 +10,7 @@ import utils.digammaFunction
 import utils.trigammaFunction
 import kotlin.math.absoluteValue
 import kotlin.math.ln
-import kotlin.math.min
 import kotlin.math.sqrt
-import kotlin.random.Random
 
 fun DoubleArray1D.std(): Double =
         mean().let { mean ->

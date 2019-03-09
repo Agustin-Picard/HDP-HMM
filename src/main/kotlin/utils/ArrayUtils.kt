@@ -1,6 +1,5 @@
 package utils
 
-import hdphmm.mean
 import tomasvolker.numeriko.core.functions.average
 import tomasvolker.numeriko.core.functions.matMul
 import tomasvolker.numeriko.core.functions.transpose
@@ -23,7 +22,20 @@ fun DoubleArray2D.pow(x: Double) =
         }
 
 fun DoubleArray1D.unbiased() = this - average()
+
 fun sumVector(indices: IntProgression, selector: (Int) -> DoubleArray1D) =
         indices.asSequence()
                 .map { selector(it) }
                 .reduce { acc, next -> acc + next }
+
+fun DoubleArray1D.autocorrelationTime(): Double =
+        1 + 2 * sumDouble(1 until size) { i -> autocorrelation(i) } / autocorrelation(0)
+
+fun DoubleArray1D.autocorrelation(delta: Int): Double = mean().let { mean ->
+    sumDouble(0 until size - delta) { t ->
+        (this[t] - mean) * (this[t + delta] - mean)
+    } / (size - delta)
+}
+
+fun DoubleArray1D.mean(): Double =
+        average()
