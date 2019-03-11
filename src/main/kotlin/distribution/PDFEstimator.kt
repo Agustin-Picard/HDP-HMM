@@ -13,6 +13,7 @@ import tomasvolker.numeriko.core.linearalgebra.linearSpace
 import tomasvolker.numeriko.core.operations.stack
 import tomasvolker.numeriko.core.operations.unstack
 import tomasvolker.numeriko.core.primitives.sumDouble
+import utils.gaussianKernel1D
 import utils.gaussianKernel2D
 import utils.sumVector
 import kotlin.math.pow
@@ -116,18 +117,18 @@ fun main() {
     val stop = 5.0
     val pdfCount = 10000
 
-    /*val estimatedPdf1D = DoubleKernelDensityEstimator(::gaussianKernel1D).estimatePdf(
+    val estimatedPdf1D = DoubleKernelDensityEstimator(::gaussianKernel1D).estimatePdf(
             samples = doubleArray1D(1000) { Random.nextGaussian() },
             start = start,
             stop = stop,
-            pdfCount = pdfCount)*/
+            pdfCount = pdfCount)
 
-    /*showLine(title = "Kernel Density Estimation") {
+    showLine(title = "Kernel Density Estimation") {
         x = linearSpace(start, stop, pdfCount)
-        y = estimatedPdf1D
-    }*/
+        y = estimatedPdf1D.distribution
+    }
 
-    val estimatedPdf2D = KernelDensityEstimator(::gaussianKernel2D).estimatePdf(
+    /*val estimatedPdf2D = KernelDensityEstimator(::gaussianKernel2D).estimatePdf(
             samples = doubleArray2D(2, 1000) { _, _ -> Random.nextGaussian() },
             start = D[-5.0, -5.0],
             stop = D[5.0, 5.0],
@@ -163,5 +164,5 @@ fun main() {
                 row = 0
             }
         }
-    }
+    }*/
 }

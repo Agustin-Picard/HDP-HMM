@@ -10,8 +10,11 @@ import tomasvolker.numeriko.core.interfaces.array1d.double.DoubleArray1D
 import tomasvolker.numeriko.core.interfaces.factory.doubleArray1D
 import tomasvolker.numeriko.core.interfaces.factory.toDoubleArray1D
 import tomasvolker.numeriko.core.linearalgebra.linearSpace
+import tomasvolker.numeriko.core.operations.concatenate
+import tomasvolker.openrndr.math.primitives.d
 import utils.autocorrelation
 import utils.autocorrelationTime
+import kotlin.math.absoluteValue
 import kotlin.math.min
 import kotlin.random.Random
 import kotlin.system.measureTimeMillis
@@ -83,7 +86,7 @@ open class HMMSampler<P,E>(val observations: DoubleArray1D,
             repeat(nIterations) { trainStep() }
 
     override fun trainStep() =
-            initTrain(nRepetitions = 4, nIterations = 100)
+        (0 until duration).forEach { initTrainStep(it, 4) }
 
     private fun acceptanceProbability(currDist: Distribution<P, E>, newDist: Distribution<P, E>, observation: Double) =
             newDist.probability(observation) / (currDist.probability(observation) + 1e-12)
@@ -239,7 +242,7 @@ class PartialGibbsHMSampler<P,E>(
                     markovChain.updateState(newState, i)
             }
 
-            if (markovChain[i].isSingleton) // TODO:fix this
+            if (markovChain[i].isSingleton)
                 with(markovChain) { updateState(proposeState(chainProbWeighted(i)) ?: ignore(), i) }
         }
     }
@@ -282,16 +285,21 @@ class HMMSamplerTester<P>(private val sampler: Sampler<P>, nInitIterations: Int)
             iterationTimeList.add(measureTimeMillis { sampler.trainStep() })
         }
 
-        return iterationTimeList.average()
+        return iterationTimeList.average().also { println(it) }
     }
 
-    fun plotAutocorrelation(samples: DoubleArray1D) =
-        showLine(title = "Autocorrelation") {
-            x = linearSpace(0.0, samples.size.toDouble(), samples.size)
-            y = doubleArray1D(samples.size) { i ->
-                samples.autocorrelation(i)
-            }
+    fun plotAutocorrelation(samples: DoubleArray1D, start: Int = 0, stop: Int = samples.size) {
+        val newArray = samples[0 until start].average().let {
+            listOf(it).toDoubleArray1D()
+                .concatenate(samples[start until stop])
         }
+        val autocorrList = List(stop - start) { i -> newArray.autocorrelation(i) }
+
+        showLine(title = "Autocorrelation") {
+            x = linearSpace(start.d, stop.d, stop - start)
+            y = autocorrList
+        }
+    }
 
     override fun toString(): String = sampler.toString()
 }
@@ -311,20 +319,20 @@ fun main() {
             alpha = 1.0
     )*/
 
-    /*val auxGibbsSampler = AuxGibbsSampler(
+    val auxGibbsSampler = AuxGibbsSampler(
             observations = observations,
             observationDistribution = observationDistribution,
             priorDistribution = priorDistribution,
             alpha = 1.0,
-            nAuxiliarStates = 8
-    )*/
+            nAuxiliarStates = 30
+    )
 
-    val partialGibbsHMSampler = PartialGibbsHMSampler(
+    /*val partialGibbsHMSampler = PartialGibbsHMSampler(
             observations = observations,
             observationDistribution = observationDistribution,
             priorDistribution = priorDistribution,
             alpha = 1.0
-    )
+    )*/
 
     /*val metropolisHastingsSampler = HMMSampler(observations = observations,
             observationDistribution = observationDistribution,
@@ -332,11 +340,24 @@ fun main() {
             alpha = 1.0
     )*/
 
-    val tester: HMMSamplerTester<Double> = HMMSamplerTester(partialGibbsHMSampler, 100).apply {
-        val parameter = testStateCount(20000).toDoubleArray1D()
-        println("Autocorrelation time = ${parameter.autocorrelationTime()}")
+    /*val tester: HMMSamplerTester<Double> = HMMSamplerTester(auxGibbsSampler, 100).apply {
+        val parameter = testParameter(40000).toDoubleArray1D()
+        println("Autocorrelation time = ${parameter.autocorrelationTime(30000)}")
         println(this)
-        plotAutocorrelation(parameter[15000 until 20000])
+        plotAutocorrelation(parameter, 30000)
+    }*/
+
+    val tester: HMMSamplerTester<Double> = HMMSamplerTester(auxGibbsSampler, 100).apply {
+        val autocorrList = mutableListOf<Double>()
+
+        repeat(1000) {
+//            val parameter = testMeasureTime(20000)
+            val parameter = testStateCount(20000).toDoubleArray1D()
+            autocorrList.add(parameter.autocorrelationTime(15000).absoluteValue)
+            println(it)
+        }
+
+        println(autocorrList.average())
     }
 
 }

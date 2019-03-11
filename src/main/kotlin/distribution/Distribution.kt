@@ -119,7 +119,7 @@ class LogNormalDistribution(val mean: Double, val std: Double): DoubleDistributi
     val variance: Double get() = std.squared()
 
     override fun nextDouble(random: Random): Double =
-            ln(random.nextGaussian())
+            ln(random.nextGaussian() + mean) * std
 
     override fun fromPrior(
         distribution: Distribution<*, LogNormalDistributionParameters>,
@@ -136,8 +136,8 @@ class LogNormalDistribution(val mean: Double, val std: Double): DoubleDistributi
             }
 
     override fun probability(observation: Double): Double =
-            (1 / (observation * std * sqrt(2 * PI))) *
-                    exp(-(ln(observation) - mean).squared() / (2.0 * std).squared())
+             exp(-(ln(observation) - mean).squared() / (2.0 * std.squared())) /
+                     (observation * std * sqrt(2 * PI))
 
     override fun quantile(probability: Double): Double =
             exp(mean + std * sqrt(2.0) * erfinvFunction(2.0 * probability - 1.0))
@@ -236,5 +236,43 @@ class GammaDistribution(val shape: Double, val scale: Double): DoubleDistributio
 
         fun probability(shape: Double, scale: Double, x: Double) =
             (1.0 / (gammaFunction(shape) * scale.pow(shape))) * x.pow(shape - 1) * exp(-x / scale)
+    }
+}
+
+class WeibullDistribution(val scale: Double, val shape: Double): DoubleDistribution<WeibullDistributionParameters> {
+
+    override val parameters get() = WeibullDistributionParameters(scale, shape)
+
+    override fun nextDouble(random: Random): Double =
+            scale * (-ln(random.nextDouble())).pow(1 / shape)
+
+    override fun probability(observation: Double): Double =
+            if (observation > 0.0)
+                (shape / scale) * (observation / scale).pow(shape - 1) * exp(-(observation / scale).pow(shape)) else 0.0
+
+    override fun pdf(nSamples: Int, start: Double, stop: Double): DoubleArray1D =
+            doubleArray1D(nSamples) { t ->
+                val x = (stop - start) * t + start
+                probability(x)
+            }
+
+    override fun fromPrior(
+        distribution: Distribution<*, WeibullDistributionParameters>,
+        random: Random
+    ): Distribution<WeibullDistributionParameters, Double> =
+        distribution.nextSample().let {
+            WeibullDistribution(
+                scale = it.scale,
+                shape = it.shape
+            )
+        }
+
+    override fun quantile(probability: Double): Double {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    companion object {
+        fun fromParameters(param: WeibullDistributionParameters) =
+                WeibullDistribution(param.scale, param.shape)
     }
 }

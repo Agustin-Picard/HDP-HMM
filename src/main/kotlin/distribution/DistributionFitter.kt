@@ -1,5 +1,9 @@
 package distribution
 
+import org.apache.commons.math3.analysis.UnivariateFunction
+import org.apache.commons.math3.analysis.differentiation.UnivariateDifferentiableFunction
+import org.apache.commons.math3.analysis.solvers.*
+import tomasvolker.numeriko.core.functions.average
 import utils.mean
 import tomasvolker.numeriko.core.interfaces.array1d.double.DoubleArray1D
 import tomasvolker.numeriko.core.interfaces.array1d.double.elementWise
@@ -10,6 +14,7 @@ import utils.digammaFunction
 import utils.trigammaFunction
 import kotlin.math.absoluteValue
 import kotlin.math.ln
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 fun DoubleArray1D.std(): Double =
@@ -124,7 +129,7 @@ object ExponentialDistributionFitter: DistributionFitter<Double, ExponentialDist
         )
 
     private fun estimateDecayRate(samples: DoubleArray1D) =
-            1.0 / samples.mean()
+            (samples.size - 2.0) / samples.sum()
 
 }
 
@@ -194,7 +199,7 @@ object LogNormalDistributionFitter: DistributionFitter<Double, LogNormalDistribu
             samples.toDoubleArray1D().let {
                 LogNormalDistributionParameters(
                     mean = estimateMean(it),
-                    std = sqrt(estimateVariance(it))
+                    std = estimateVariance(it)
                 )
             }
 
@@ -203,3 +208,31 @@ object LogNormalDistributionFitter: DistributionFitter<Double, LogNormalDistribu
         private fun estimateVariance(samples: DoubleArray1D) =
                     samples.elementWise { ln(it) }.std()
     }
+
+
+data class WeibullDistributionParameters(val scale: Double, val shape: Double)
+
+object WeibullDistributionFitter: DistributionFitter<Double, WeibullDistributionParameters> {
+    override fun fitParameters(samples: Iterable<Double>): WeibullDistributionParameters =
+            samples.toDoubleArray1D().let {
+                val scale = estimateScale(it)
+                WeibullDistributionParameters(
+                    scale = scale,
+                    shape = estimateShape(it, scale)
+                )
+            }
+
+    private fun estimateShape(samples: DoubleArray1D, scale: Double): Double =
+        (samples.elementWise { it.pow(scale) }.sum() / samples.size).pow(1 / scale)
+
+    private fun estimateScale(samples: DoubleArray1D): Double {
+        val shapeFunction: UnivariateFunction = UnivariateFunction {
+                k: Double -> sumDouble(0 until samples.size) { i -> samples[i].pow(k) * ln(samples[i]) } /
+                sumDouble(0 until samples.size) { i -> samples[i].pow(k) } - (1.0 / k)
+            - samples.elementWise { ln(it) }.average()
+        }
+
+        return BisectionSolver().solve(1000, shapeFunction, 0.0, 100.0) // Brent or Secant solver don't seem to work
+    }
+
+}
